@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 
 const SERVICES = {
@@ -13,7 +13,7 @@ const SERVICES = {
   hair_color:    { label: 'Hair color',      price: 200, duration: 45 },
 }
 
-export default function JoinPage() {
+function JoinPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const shopId = searchParams.get('shop')
@@ -30,7 +30,6 @@ export default function JoinPage() {
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
 
-  // Fetch shop info + queue state on load
   useEffect(() => {
     if (!shopId) {
       setShopError(true)
@@ -85,7 +84,6 @@ export default function JoinPage() {
         return
       }
 
-      // Redirect to the customer's live token page
       router.push(`/queue/${data.entry.id}`)
 
     } catch (err) {
@@ -95,12 +93,9 @@ export default function JoinPage() {
     }
   }
 
-  // Estimated wait for selected service
   const selectedWait = service
     ? queueState.totalWaitMinutes + SERVICES[service].duration
     : null
-
-  // ── Render states ──
 
   if (loadingShop) return (
     <div style={styles.centered}>
@@ -118,13 +113,11 @@ export default function JoinPage() {
     <>
       <style>{css}</style>
 
-      {/* Header */}
       <header style={styles.header}>
         <div style={styles.brand}>Namber<span style={styles.brandAccent}>One</span></div>
         <div style={styles.shopBadge}>{shopInfo?.shop_name}</div>
       </header>
 
-      {/* Live queue strip */}
       <div style={styles.strip}>
         <div style={styles.stripItem}>
           <div className="dot" />
@@ -143,12 +136,10 @@ export default function JoinPage() {
         </div>
       </div>
 
-      {/* Main form */}
       <main style={styles.main}>
         <h1 style={styles.heading}>Apna number<br />lo, baith jao</h1>
         <p style={styles.sub}>Fill in your details, we'll call you when ready.</p>
 
-        {/* Name */}
         <div style={styles.field}>
           <label style={styles.fieldLabel}>Your name</label>
           <input
@@ -162,7 +153,6 @@ export default function JoinPage() {
           {errors.name && <div style={styles.fieldError}>{errors.name}</div>}
         </div>
 
-        {/* Phone */}
         <div style={styles.field}>
           <label style={styles.fieldLabel}>Mobile number</label>
           <div style={{ ...styles.phoneWrap, ...(errors.phone ? styles.phoneWrapError : {}) }}>
@@ -183,7 +173,6 @@ export default function JoinPage() {
           {errors.phone && <div style={styles.fieldError}>{errors.phone}</div>}
         </div>
 
-        {/* Services */}
         <label style={styles.fieldLabel}>Select service</label>
         <div style={styles.servicesGrid}>
           {Object.entries(SERVICES).map(([key, svc]) => (
@@ -217,7 +206,6 @@ export default function JoinPage() {
         </div>
         {errors.service && <div style={{ ...styles.fieldError, marginBottom: '1rem' }}>{errors.service}</div>}
 
-        {/* Wait estimate */}
         {selectedWait && (
           <div style={styles.waitBar}>
             <span style={styles.waitLabel}>Your estimated wait</span>
@@ -225,12 +213,10 @@ export default function JoinPage() {
           </div>
         )}
 
-        {/* Submit error */}
         {errors.submit && (
           <div style={styles.submitError}>{errors.submit}</div>
         )}
 
-        {/* Join button */}
         <button
           style={{ ...styles.btn, ...(submitting ? styles.btnDisabled : {}) }}
           onClick={handleJoin}
@@ -240,6 +226,18 @@ export default function JoinPage() {
         </button>
       </main>
     </>
+  )
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={
+      <div style={styles.centered}>
+        <div style={styles.spinner} />
+      </div>
+    }>
+      <JoinPage />
+    </Suspense>
   )
 }
 
